@@ -13,6 +13,7 @@ from __future__ import annotations
 
 from dataclasses import dataclass, field
 from enum import Enum, auto
+from typing import Any
 
 # ─── Source Position ──────────────────────────────────────────
 
@@ -102,6 +103,8 @@ class ParsedDocument:
     uri: str
     blocks: list[BlockDeclaration] = field(default_factory=list)
     diagnostics: list[Diagnostic] = field(default_factory=list)
+    tree: Any = None
+    source: str = ""  # Raw source text, stored for semantic analysis
 
 
 @dataclass

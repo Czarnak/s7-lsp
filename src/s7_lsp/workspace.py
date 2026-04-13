@@ -23,6 +23,7 @@ from s7_lsp.ast_nodes import ParsedDocument
 from s7_lsp.parsers.awl_parser import parse_awl
 from s7_lsp.parsers.resource_parser import parse_resource
 from s7_lsp.parsers.scl_parser import parse_scl
+from s7_lsp.semantic.symbol_table import SymbolTable
 
 logger = logging.getLogger(__name__)
 
@@ -56,11 +57,17 @@ class Workspace:
     def __init__(self) -> None:
         self._sources: dict[str, str] = {}
         self._parsed: dict[str, ParsedDocument] = {}
+        self._symbol_table = SymbolTable()
 
     @property
     def documents(self) -> dict[str, ParsedDocument]:
         """All currently parsed documents, keyed by URI."""
         return self._parsed
+
+    @property
+    def symbol_table(self) -> SymbolTable:
+        """Workspace-wide symbol registry."""
+        return self._symbol_table
 
     def open_document(self, uri: str, source: str) -> ParsedDocument:
         """Register and parse a newly opened document.
@@ -97,6 +104,7 @@ class Workspace:
         """
         self._sources.pop(uri, None)
         self._parsed.pop(uri, None)
+        self._symbol_table.remove_document(uri)
 
     def get_document(self, uri: str) -> ParsedDocument | None:
         """Get the most recent parsed result for a document."""
@@ -131,6 +139,9 @@ class Workspace:
 
         doc = parser_fn(source, uri)
         self._parsed[uri] = doc
+
+        self._symbol_table.remove_document(uri)
+        self._symbol_table.add_from_document(uri, doc.blocks)
 
         logger.debug(
             "Parsed %s: %d block(s), %d diagnostic(s)",

@@ -10,6 +10,13 @@ import sys
 
 from s7_lsp.server import create_server
 
+_LOG_LEVELS: dict[str, int] = {
+    "DEBUG": logging.DEBUG,
+    "INFO": logging.INFO,
+    "WARNING": logging.WARNING,
+    "ERROR": logging.ERROR,
+}
+
 
 def main() -> None:
     parser = argparse.ArgumentParser(
@@ -50,16 +57,12 @@ def main() -> None:
 
     # Configure logging — stderr by default, file if specified.
     # We avoid stdout because stdio transport uses it for JSON-RPC.
-    log_kwargs: dict[str, object] = {
-        "level": getattr(logging, args.log_level),
-        "format": "%(asctime)s [%(levelname)s] %(name)s: %(message)s",
-    }
+    log_level = _LOG_LEVELS[args.log_level]
+    log_format = "%(asctime)s [%(levelname)s] %(name)s: %(message)s"
     if args.log_file:
-        log_kwargs["filename"] = args.log_file
+        logging.basicConfig(level=log_level, format=log_format, filename=args.log_file)
     else:
-        log_kwargs["stream"] = sys.stderr
-
-    logging.basicConfig(**log_kwargs)  # type: ignore[arg-type]
+        logging.basicConfig(level=log_level, format=log_format, stream=sys.stderr)
 
     server = create_server()
     server.start_io()

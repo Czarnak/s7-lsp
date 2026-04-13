@@ -22,4 +22,6 @@ Thumbs.db
 .vscode/
 .idea/
 .claude/
-PRD.md
+production/
+test.py
+.coverage

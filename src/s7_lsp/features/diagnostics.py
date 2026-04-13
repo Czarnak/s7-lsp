@@ -11,6 +11,8 @@ from lsprotocol import types as lsp
 
 from s7_lsp.ast_nodes import Diagnostic as AstDiagnostic
 from s7_lsp.ast_nodes import ParsedDocument
+from s7_lsp.semantic.semantic_diagnostics import get_semantic_diagnostics
+from s7_lsp.semantic.symbol_table import SymbolTable
 
 # Map our severity integers to LSP DiagnosticSeverity enum
 _SEVERITY_MAP: dict[int, lsp.DiagnosticSeverity] = {
@@ -21,7 +23,10 @@ _SEVERITY_MAP: dict[int, lsp.DiagnosticSeverity] = {
 }
 
 
-def get_diagnostics(document: ParsedDocument) -> list[lsp.Diagnostic]:
+def get_diagnostics(
+    document: ParsedDocument,
+    symbol_table: SymbolTable | None = None,
+) -> list[lsp.Diagnostic]:
     """Convert all diagnostics from a parsed document to LSP format.
 
     This is the main entry point called by the server after each
@@ -33,6 +38,12 @@ def get_diagnostics(document: ParsedDocument) -> list[lsp.Diagnostic]:
 
     for diag in document.diagnostics:
         lsp_diagnostics.append(_to_lsp_diagnostic(diag))
+
+    # Only run semantic diagnostics when the parse succeeded (no Error diagnostics).
+    has_parse_errors = any(d.severity == 1 for d in document.diagnostics)
+    if not has_parse_errors and symbol_table is not None:
+        for sem_diag in get_semantic_diagnostics(document, symbol_table):
+            lsp_diagnostics.append(_to_lsp_diagnostic(sem_diag))
 
     return lsp_diagnostics
 

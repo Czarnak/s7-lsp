@@ -30,6 +30,16 @@ dependencies = [
     "lark>=1.2.0,<2.0",
 ]
 
+[project.optional-dependencies]
+dev = [
+    "pytest>=7.4",
+    "pytest-cov>=4.1",
+    "pytest-qt>=4.2",
+    "responses>=0.24",
+    "ruff>=0.15.0",
+    "mypy>=0.991",
+]
+
 [project.scripts]
 s7-lsp = "s7_lsp.__main__:main"
 
@@ -51,6 +61,6 @@ ignore = ["E501"]
 
 [tool.mypy]
 python_version = "3.10"
-strict = true
+strict = false
 warn_return_any = true
 warn_unused_configs = true

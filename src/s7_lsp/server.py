@@ -22,6 +22,7 @@ from lsprotocol import types as lsp
 from pygls.lsp.server import LanguageServer
 
 from s7_lsp import __version__
+from s7_lsp.ast_nodes import ParsedDocument
 from s7_lsp.features.completion import get_completions
 from s7_lsp.features.definition import get_definition
 from s7_lsp.features.diagnostics import get_diagnostics
@@ -99,7 +100,7 @@ def create_server() -> LanguageServer:
 
         logger.debug("Document opened: %s", uri)
         doc = workspace.open_document(uri, source)
-        _publish_diagnostics(server, uri, doc)
+        _publish_diagnostics(server, uri, doc, workspace.symbol_table)
 
     @server.feature(lsp.TEXT_DOCUMENT_DID_CHANGE)
     def on_did_change(params: lsp.DidChangeTextDocumentParams) -> None:
@@ -116,7 +117,7 @@ def create_server() -> LanguageServer:
         source = params.content_changes[-1].text
 
         doc = workspace.update_document(uri, source)
-        _publish_diagnostics(server, uri, doc)
+        _publish_diagnostics(server, uri, doc, workspace.symbol_table)
 
     @server.feature(lsp.TEXT_DOCUMENT_DID_CLOSE)
     def on_did_close(params: lsp.DidCloseTextDocumentParams) -> None:
@@ -126,7 +127,9 @@ def create_server() -> LanguageServer:
 
         workspace.close_document(uri)
         # Clear diagnostics for the closed file
-        server.publish_diagnostics(uri, [])
+        server.text_document_publish_diagnostics(
+            lsp.PublishDiagnosticsParams(uri=uri, diagnostics=[])
+        )
 
     @server.feature(lsp.TEXT_DOCUMENT_DID_SAVE)
     def on_did_save(params: lsp.DidSaveTextDocumentParams) -> None:
@@ -134,7 +137,7 @@ def create_server() -> LanguageServer:
         uri = params.text_document.uri
         if params.text is not None:
             doc = workspace.update_document(uri, params.text)
-            _publish_diagnostics(server, uri, doc)
+            _publish_diagnostics(server, uri, doc, workspace.symbol_table)
 
     # ─── Document Symbols ─────────────────────────────────
 
@@ -174,7 +177,7 @@ def create_server() -> LanguageServer:
         source = workspace.get_source(params.text_document.uri)
         if doc is None or source is None:
             return None
-        return get_hover(doc, params.position, source)
+        return get_hover(doc, params.position, source, workspace.symbol_table)
 
     # ─── Go-to-Definition ─────────────────────────────────
 
@@ -187,7 +190,7 @@ def create_server() -> LanguageServer:
         source = workspace.get_source(params.text_document.uri)
         if doc is None or source is None:
             return None
-        return get_definition(doc, params.position, source)
+        return get_definition(doc, params.position, source, workspace.symbol_table)
 
     # ─── Find References ──────────────────────────────────
 
@@ -198,11 +201,18 @@ def create_server() -> LanguageServer:
         source = workspace.get_source(params.text_document.uri)
         if doc is None or source is None:
             return None
+        docs = {
+            uri: src
+            for uri in workspace.documents
+            if (src := workspace.get_source(uri)) is not None
+        }
         return get_references(
             doc,
             params.position,
             source,
+            workspace.symbol_table,
             include_declaration=params.context.include_declaration,
+            documents=docs,
         )
 
     # ─── Completion ───────────────────────────────────────
@@ -214,7 +224,7 @@ def create_server() -> LanguageServer:
         source = workspace.get_source(params.text_document.uri)
         if doc is None or source is None:
             return None
-        return get_completions(doc, params.position, source)
+        return get_completions(doc, params.position, source, workspace.symbol_table)
 
     return server
 
@@ -225,12 +235,15 @@ def create_server() -> LanguageServer:
 def _publish_diagnostics(
     server: LanguageServer,
     uri: str,
-    doc: s7_lsp.ast_nodes.ParsedDocument,  # type: ignore[name-defined]
+    doc: ParsedDocument,
+    symbol_table=None,
 ) -> None:
     """Convert parsed diagnostics to LSP format and publish them."""
 
-    lsp_diagnostics = get_diagnostics(doc)
-    server.publish_diagnostics(uri, lsp_diagnostics)
+    lsp_diagnostics = get_diagnostics(doc, symbol_table)
+    server.text_document_publish_diagnostics(
+        lsp.PublishDiagnosticsParams(uri=uri, diagnostics=lsp_diagnostics)
+    )
 
     if lsp_diagnostics:
         logger.debug("Published %d diagnostic(s) for %s", len(lsp_diagnostics), uri)

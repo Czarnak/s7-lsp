@@ -15,6 +15,7 @@ We use Earley parser for Phase 1 because:
 from __future__ import annotations
 
 import logging
+import re
 from pathlib import Path
 
 from lark import Lark, Token, Tree, UnexpectedCharacters, UnexpectedToken
@@ -75,10 +76,11 @@ def parse_scl(source: str, uri: str = "") -> ParsedDocument:
         ParsedDocument with blocks and/or diagnostics.
     """
     parser = _get_parser()
-    doc = ParsedDocument(uri=uri)
+    doc = ParsedDocument(uri=uri, source=source)
 
     try:
         tree = parser.parse(source)
+        doc.tree = tree
         doc.blocks = _extract_blocks(tree)
     except UnexpectedCharacters as e:
         doc.diagnostics.append(_unexpected_char_diagnostic(e))
@@ -456,8 +458,6 @@ def _clean_expected_tokens(expected: set[str]) -> list[str]:
 
 
 # ─── Fallback Regex Scanner ──────────────────────────────────
-
-import re
 
 # Patterns for block declarations — used when full parse fails
 _BLOCK_PATTERNS = [
