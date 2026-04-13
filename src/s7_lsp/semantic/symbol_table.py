@@ -10,7 +10,7 @@ from __future__ import annotations
 
 from dataclasses import dataclass, field
 
-from s7_lsp.ast_nodes import BlockDeclaration, Position, Range, VarDeclaration
+from s7_lsp.ast_nodes import BlockDeclaration, Position, Range
 
 
 @dataclass
@@ -21,9 +21,7 @@ class Symbol:
     kind: str  # "block", "variable", "type", "parameter"
     type_name: str | None = None
     definition_uri: str = ""
-    definition_range: Range = field(
-        default_factory=lambda: Range(Position(0, 0), Position(0, 0))
-    )
+    definition_range: Range = field(default_factory=lambda: Range(Position(0, 0), Position(0, 0)))
 
 
 class SymbolTable:

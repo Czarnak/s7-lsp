@@ -270,9 +270,7 @@ def _extract_var_decls(section_node: Tree, section_kind: VarSectionKind) -> list
     return decls
 
 
-def _extract_single_var_decl(
-    node: Tree, section_kind: VarSectionKind
-) -> list[VarDeclaration]:
+def _extract_single_var_decl(node: Tree, section_kind: VarSectionKind) -> list[VarDeclaration]:
     """Extract one or more variable declarations from a var_decl node.
 
     A var_decl can declare multiple variables: `a, b, c : INT;`

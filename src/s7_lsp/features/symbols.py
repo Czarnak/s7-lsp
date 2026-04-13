@@ -186,9 +186,8 @@ def search_workspace_symbols(
 # ─── Helpers ──────────────────────────────────────────────────
 
 
-def _to_lsp_range(r: "s7_lsp.ast_nodes.Range") -> lsp.Range:  # type: ignore[name-defined]
+def _to_lsp_range(r: s7_lsp.ast_nodes.Range) -> lsp.Range:  # type: ignore[name-defined]
     """Convert our AST Range to LSP Range."""
-    from s7_lsp.ast_nodes import Range as AstRange  # noqa: F811
 
     return lsp.Range(
         start=lsp.Position(line=r.start.line, character=r.start.character),

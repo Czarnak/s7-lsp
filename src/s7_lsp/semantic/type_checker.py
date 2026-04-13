@@ -9,19 +9,40 @@ Will provide:
 
 from __future__ import annotations
 
-
 # S7 type compatibility matrix — which types can be assigned to which.
 # Phase 2 will use this for diagnostics.
-NUMERIC_TYPES = frozenset({
-    "BOOL", "SINT", "USINT", "INT", "UINT",
-    "DINT", "UDINT", "LINT", "ULINT", "REAL", "LREAL",
-    "BYTE", "WORD", "DWORD", "LWORD",
-})
+NUMERIC_TYPES = frozenset(
+    {
+        "BOOL",
+        "SINT",
+        "USINT",
+        "INT",
+        "UINT",
+        "DINT",
+        "UDINT",
+        "LINT",
+        "ULINT",
+        "REAL",
+        "LREAL",
+        "BYTE",
+        "WORD",
+        "DWORD",
+        "LWORD",
+    }
+)
 
-TIME_TYPES = frozenset({
-    "TIME", "LTIME", "TIME_OF_DAY", "LTIME_OF_DAY",
-    "DATE", "LDATE", "DATE_AND_TIME", "LDATE_AND_TIME",
-})
+TIME_TYPES = frozenset(
+    {
+        "TIME",
+        "LTIME",
+        "TIME_OF_DAY",
+        "LTIME_OF_DAY",
+        "DATE",
+        "LDATE",
+        "DATE_AND_TIME",
+        "LDATE_AND_TIME",
+    }
+)
 
 STRING_TYPES = frozenset({"CHAR", "WCHAR", "STRING", "WSTRING"})
 

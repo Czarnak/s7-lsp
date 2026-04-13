@@ -225,10 +225,9 @@ def create_server() -> LanguageServer:
 def _publish_diagnostics(
     server: LanguageServer,
     uri: str,
-    doc: "s7_lsp.ast_nodes.ParsedDocument",  # type: ignore[name-defined]
+    doc: s7_lsp.ast_nodes.ParsedDocument,  # type: ignore[name-defined]
 ) -> None:
     """Convert parsed diagnostics to LSP format and publish them."""
-    from s7_lsp.ast_nodes import ParsedDocument  # noqa: F811
 
     lsp_diagnostics = get_diagnostics(doc)
     server.publish_diagnostics(uri, lsp_diagnostics)
