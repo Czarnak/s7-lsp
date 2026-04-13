@@ -1,0 +1,14 @@
+// ═══════════════════════════════════════════════════════════════
+//  S7 Resource File Grammar — STUB (Phase 4)
+//  Will handle .s7res files (YAML-like config with MLC_ IDs)
+// ═══════════════════════════════════════════════════════════════
+
+start: entry*
+
+entry: IDENT ":" VALUE
+
+IDENT: /[A-Za-z_]\w*/
+VALUE: /.+/
+
+%ignore /\s+/
+%ignore /#[^\n]*/

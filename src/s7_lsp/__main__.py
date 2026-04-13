@@ -1,0 +1,69 @@
+"""Entry point for the S7-LSP language server.
+
+This module is invoked when running `s7-lsp` from the command line.
+Claude Code discovers this binary via .lsp.json and communicates over stdio.
+"""
+
+import argparse
+import logging
+import sys
+
+from s7_lsp.server import create_server
+
+
+def main() -> None:
+    parser = argparse.ArgumentParser(
+        prog="s7-lsp",
+        description="Language Server Protocol implementation for Siemens S7 PLC languages",
+    )
+    parser.add_argument(
+        "--stdio",
+        action="store_true",
+        default=True,
+        help="Use stdio transport (default, required by Claude Code)",
+    )
+    parser.add_argument(
+        "--log-level",
+        choices=["DEBUG", "INFO", "WARNING", "ERROR"],
+        default="WARNING",
+        help="Set logging verbosity",
+    )
+    parser.add_argument(
+        "--log-file",
+        type=str,
+        default=None,
+        help="Write logs to file instead of stderr",
+    )
+    parser.add_argument(
+        "--version",
+        action="store_true",
+        help="Print version and exit",
+    )
+
+    args = parser.parse_args()
+
+    if args.version:
+        from s7_lsp import __version__
+
+        print(f"s7-lsp {__version__}")
+        sys.exit(0)
+
+    # Configure logging — stderr by default, file if specified.
+    # We avoid stdout because stdio transport uses it for JSON-RPC.
+    log_kwargs: dict[str, object] = {
+        "level": getattr(logging, args.log_level),
+        "format": "%(asctime)s [%(levelname)s] %(name)s: %(message)s",
+    }
+    if args.log_file:
+        log_kwargs["filename"] = args.log_file
+    else:
+        log_kwargs["stream"] = sys.stderr
+
+    logging.basicConfig(**log_kwargs)  # type: ignore[arg-type]
+
+    server = create_server()
+    server.start_io()
+
+
+if __name__ == "__main__":
+    main()

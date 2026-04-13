@@ -1,0 +1,308 @@
+// ═══════════════════════════════════════════════════════════════
+//  S7 SCL Grammar — Phase 1
+//  Covers: FB, FC, OB, DB, TYPE declarations, variable sections,
+//          control flow, expressions, and SCL-specific constructs.
+// ═══════════════════════════════════════════════════════════════
+
+start: compilation_unit*
+
+?compilation_unit: function_block
+                 | function_decl
+                 | organization_block
+                 | data_block
+                 | type_decl
+
+
+// ─── Block Declarations ──────────────────────────────────────
+
+function_block: "FUNCTION_BLOCK"i name_ref ATTRIBUTE? version? var_section* code_body "END_FUNCTION_BLOCK"i
+
+function_decl: "FUNCTION"i name_ref ":" type_ref ATTRIBUTE? version? var_section* code_body "END_FUNCTION"i
+
+// Void function — no return type
+             | "FUNCTION"i name_ref ":" "VOID"i ATTRIBUTE? version? var_section* code_body "END_FUNCTION"i
+
+organization_block: "ORGANIZATION_BLOCK"i name_ref ATTRIBUTE? version? var_section* code_body "END_ORGANIZATION_BLOCK"i
+
+data_block: "DATA_BLOCK"i name_ref ATTRIBUTE? db_type_spec? version? var_section* db_body "END_DATA_BLOCK"i
+
+type_decl: "TYPE"i name_ref ATTRIBUTE? version? struct_decl ";"? "END_TYPE"i
+
+// DB can be typed: DATA_BLOCK "MyDB" "MyUDT" or DATA_BLOCK "MyDB" "MyFB"
+db_type_spec: name_ref
+
+version: "VERSION"i ":" VERSION_NUM
+
+
+// ─── Variable Sections ───────────────────────────────────────
+
+var_section: var_keyword ATTRIBUTE? constant_flag? retain_flag? var_decl* "END_VAR"i
+
+var_keyword: "VAR_INPUT"i   -> var_input
+           | "VAR_OUTPUT"i  -> var_output
+           | "VAR_IN_OUT"i  -> var_in_out
+           | "VAR_TEMP"i    -> var_temp
+           | "VAR_GLOBAL"i  -> var_global
+           | "VAR_EXTERNAL"i -> var_external
+           | "VAR"i         -> var_local
+
+constant_flag: "CONSTANT"i
+retain_flag: "RETAIN"i
+
+var_decl: ATTRIBUTE? ident_list ":" type_ref var_init? ";"
+        | ATTRIBUTE? ident_list ":" struct_decl ";"
+
+ident_list: IDENT ("," IDENT)*
+
+var_init: ":=" expr
+
+
+// ─── Type References ─────────────────────────────────────────
+
+?type_ref: builtin_type
+         | array_type
+         | string_type
+         | name_ref
+
+builtin_type: BUILTIN_TYPE
+
+// ARRAY [1..10] OF INT  or  ARRAY [0..3, 0..7] OF BYTE
+array_type: "ARRAY"i "[" array_range ("," array_range)* "]" "OF"i type_ref
+
+array_range: expr ".." expr
+
+// STRING[254] or STRING
+string_type: STRING_TYPE_KW ("[" expr "]")?
+
+struct_decl: "STRUCT"i var_decl* "END_STRUCT"i
+
+
+// ─── Code Body (FB, FC, OB) ─────────────────────────────────
+
+code_body: "BEGIN"i stmt_list
+         | stmt_list
+
+stmt_list: stmt*
+
+
+// ─── DB Body ─────────────────────────────────────────────────
+
+db_body: "BEGIN"i db_assign*
+       |
+
+db_assign: variable_ref ":=" expr ";"
+
+
+// ─── Statements ──────────────────────────────────────────────
+
+?stmt: if_stmt
+     | case_stmt
+     | for_stmt
+     | while_stmt
+     | repeat_stmt
+     | region_block
+     | return_stmt ";"
+     | exit_stmt ";"
+     | continue_stmt ";"
+     | simple_stmt ";"
+
+// Assignment or function call — both start with a variable/expression
+simple_stmt: expr ASSIGN_OP expr     -> assignment
+           | expr                    -> expr_stmt
+
+if_stmt: "IF"i expr "THEN"i stmt_list elsif_clause* else_clause? "END_IF"i ";"?
+
+elsif_clause: "ELSIF"i expr "THEN"i stmt_list
+
+else_clause: "ELSE"i stmt_list
+
+case_stmt: "CASE"i expr "OF"i case_branch* else_clause? "END_CASE"i ";"?
+
+case_branch: case_label ("," case_label)* ":" stmt_list
+
+?case_label: expr
+           | expr ".." expr  -> case_range
+
+for_stmt: "FOR"i IDENT ":=" expr "TO"i expr ("BY"i expr)? "DO"i stmt_list "END_FOR"i ";"?
+
+while_stmt: "WHILE"i expr "DO"i stmt_list "END_WHILE"i ";"?
+
+repeat_stmt: "REPEAT"i stmt_list "UNTIL"i expr "END_REPEAT"i ";"?
+
+return_stmt: "RETURN"i
+
+exit_stmt: "EXIT"i
+
+continue_stmt: "CONTINUE"i
+
+region_block: "REGION"i REGION_TITLE? stmt_list "END_REGION"i
+
+
+// ─── Expressions (precedence low → high) ─────────────────────
+
+// OR (lowest precedence)
+?expr: or_expr
+?or_expr: xor_expr
+        | or_expr "OR"i xor_expr         -> bin_or
+
+?xor_expr: and_expr
+         | xor_expr "XOR"i and_expr      -> bin_xor
+
+?and_expr: cmp_expr
+         | and_expr "AND"i cmp_expr      -> bin_and
+         | and_expr "&" cmp_expr         -> bin_and
+
+?cmp_expr: add_expr
+         | cmp_expr "=" add_expr         -> cmp_eq
+         | cmp_expr "<>" add_expr        -> cmp_ne
+         | cmp_expr "<" add_expr         -> cmp_lt
+         | cmp_expr ">" add_expr         -> cmp_gt
+         | cmp_expr "<=" add_expr        -> cmp_le
+         | cmp_expr ">=" add_expr        -> cmp_ge
+
+?add_expr: mul_expr
+         | add_expr "+" mul_expr         -> add
+         | add_expr "-" mul_expr         -> sub
+
+?mul_expr: exp_expr
+         | mul_expr "*" exp_expr         -> mul
+         | mul_expr "/" exp_expr         -> div
+         | mul_expr "MOD"i exp_expr      -> mod
+
+?exp_expr: unary_expr
+         | exp_expr "**" unary_expr      -> power
+
+?unary_expr: "NOT"i unary_expr          -> unary_not
+           | "-" unary_expr             -> unary_neg
+           | "+" unary_expr             -> unary_pos
+           | postfix_expr
+
+// Member access, array index, and function calls
+?postfix_expr: atom
+             | postfix_expr "." member       -> member_access
+             | postfix_expr "[" expr_list "]" -> array_access
+             | postfix_expr "(" arg_list ")" -> func_call
+
+member: IDENT | QUOTED_IDENT
+
+expr_list: expr ("," expr)*
+
+arg_list: (argument ("," argument)*)?
+
+argument: named_arg | expr
+
+named_arg: param_name ":=" expr  -> named_arg_assign
+         | param_name "=>" expr  -> named_arg_output
+
+param_name: IDENT | QUOTED_IDENT
+
+
+// ─── Atoms ───────────────────────────────────────────────────
+
+?atom: variable_ref
+     | literal
+     | "(" expr ")"          -> paren_expr
+
+// Variable reference: #local, "GlobalDB", plain ident
+?variable_ref: HASH_IDENT    -> local_var
+             | QUOTED_IDENT   -> global_ref
+             | IDENT          -> ident_ref
+
+// Name used in declarations (block name, type name)
+?name_ref: QUOTED_IDENT      -> quoted_name
+         | IDENT              -> plain_name
+
+
+// ─── Literals ────────────────────────────────────────────────
+
+?literal: INTEGER             -> int_lit
+        | FLOAT               -> float_lit
+        | HEX_INT             -> hex_lit
+        | BIN_INT             -> bin_lit
+        | OCT_INT             -> oct_lit
+        | TYPED_INT           -> typed_int_lit
+        | TIME_LITERAL        -> time_lit
+        | DATE_LITERAL        -> date_lit
+        | TOD_LITERAL         -> tod_lit
+        | DT_LITERAL          -> dt_lit
+        | STRING              -> string_lit
+        | "TRUE"i             -> true_lit
+        | "FALSE"i            -> false_lit
+
+
+// ═══════════════════════════════════════════════════════════════
+//  Terminals
+// ═══════════════════════════════════════════════════════════════
+
+// Assignment operators
+ASSIGN_OP: ":=" | "+=" | "-=" | "*=" | "/="
+
+// Version number: 0.1, 1.0, etc.
+VERSION_NUM: /\d+\.\d+/
+
+// Region title — rest of line after REGION keyword
+REGION_TITLE: / +[^\n]+/
+
+// ─── Identifiers ─────────────────────────────────────────────
+
+// Built-in type keywords — priority 4 to match before IDENT
+BUILTIN_TYPE.4: /(?i)\b(?:BOOL|SINT|USINT|UINT|UDINT|LINT|ULINT|LREAL|DINT|REAL|BYTE|WORD|DWORD|LWORD|WCHAR|CHAR|LTIME_OF_DAY|TIME_OF_DAY|LDATE_AND_TIME|DATE_AND_TIME|LTIME|LDATE|TIME|DATE|INT)\b/
+
+STRING_TYPE_KW.4: /(?i)\b(?:WSTRING|STRING)\b/
+
+HASH_IDENT: /#[A-Za-z_]\w*/
+QUOTED_IDENT: /"[^"]+"/
+IDENT: /[A-Za-z_]\w*/
+
+// ─── Numeric Literals ────────────────────────────────────────
+
+// Typed integer: INT#123, WORD#16#FF, BYTE#2#11001100
+TYPED_INT.3: /(?i)(?:SINT|USINT|INT|UINT|DINT|UDINT|LINT|ULINT|BYTE|WORD|DWORD|LWORD)#(?:(?:16#[0-9A-Fa-f_]+)|(?:8#[0-7_]+)|(?:2#[01_]+)|(?:[+-]?\d[\d_]*))/
+
+// Time literals: T#5s, LT#1h30m500ms, TIME#-5d3h, LTIME#100us
+// Single regex to avoid lark (?i) flag issues when combining alternatives
+TIME_LITERAL.3: /(?i)(?:LTIME#|LT#|TIME#|T#)[+-]?(?:\d[\d_]*(?:ms|us|ns|[dhms]))+/
+
+// Date: D#2024-01-15, DATE#2024-01-15
+DATE_LITERAL.3: /(?i)(?:LDATE#|LD#|DATE#|D#)\d{4}-\d{2}-\d{2}/
+
+// Time of day: TOD#12:30:00.0, LTOD#08:00:00
+TOD_LITERAL.3: /(?i)(?:LTIME_OF_DAY#|LTOD#|TIME_OF_DAY#|TOD#)\d{2}:\d{2}:\d{2}(?:\.\d+)?/
+
+// Date and time: DT#2024-01-15-12:30:00.0
+DT_LITERAL.3: /(?i)(?:LDATE_AND_TIME#|LDT#|DATE_AND_TIME#|DT#)\d{4}-\d{2}-\d{2}-\d{2}:\d{2}:\d{2}(?:\.\d+)?/
+
+// Hex: 16#FF, 16#DEAD_BEEF
+HEX_INT.2: /16#[0-9A-Fa-f_]+/
+
+// Binary: 2#1010_0011
+BIN_INT.2: /2#[01_]+/
+
+// Octal: 8#377
+OCT_INT.2: /8#[0-7_]+/
+
+// Float: 3.14, 1.0e-5 (must come before INTEGER)
+FLOAT.2: /\d[\d_]*\.\d[\d_]*(?:[eE][+-]?\d[\d_]*)?/
+
+// Integer: 42, 1_000
+INTEGER: /\d[\d_]*/
+
+// ─── Strings ─────────────────────────────────────────────────
+
+// SCL strings use single quotes; '' is the escape for a literal quote
+STRING: /'[^']*(?:''[^']*)*'/
+
+// ─── Attributes ──────────────────────────────────────────────
+
+// { S7_Optimized_Access := 'TRUE' }
+// Captured as a single token — internals parsed separately if needed
+ATTRIBUTE: /\{[^}]*\}/
+
+// ─── Comments & Whitespace (ignored) ─────────────────────────
+
+COMMENT_LINE: /\/\/[^\n]*/
+COMMENT_BLOCK: /\(\*([^*]|\*(?!\)))*\*\)/
+
+%ignore COMMENT_LINE
+%ignore COMMENT_BLOCK
+%ignore /\s+/

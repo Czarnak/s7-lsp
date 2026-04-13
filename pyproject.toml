@@ -1,0 +1,56 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "s7-lsp"
+version = "0.1.0"
+description = "Language Server Protocol implementation for Siemens S7 PLC languages (SCL/STL)"
+readme = "README.md"
+license = "MIT"
+requires-python = ">=3.10"
+authors = [{ name = "Czarnak" }]
+keywords = ["lsp", "siemens", "scl", "plc", "s7", "language-server"]
+classifiers = [
+    "Development Status :: 3 - Alpha",
+    "Intended Audience :: Developers",
+    "License :: OSI Approved :: MIT License",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
+    "Topic :: Software Development :: Compilers",
+    "Topic :: Text Editors :: Integrated Development Environments (IDE)",
+]
+
+dependencies = [
+    "pygls>=2.0,<3.0",
+    "lsprotocol>=2024.0.0",
+    "lark>=1.2.0,<2.0",
+]
+
+[project.scripts]
+s7-lsp = "s7_lsp.__main__:main"
+
+[project.urls]
+Repository = "https://github.com/Czarnak/s7-lsp"
+Issues = "https://github.com/Czarnak/s7-lsp/issues"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/s7_lsp"]
+
+[tool.ruff]
+target-version = "py310"
+line-length = 100
+src = ["src"]
+
+[tool.ruff.lint]
+select = ["E", "F", "W", "I", "UP", "B", "SIM", "RUF"]
+ignore = ["E501"]
+
+[tool.mypy]
+python_version = "3.10"
+strict = true
+warn_return_any = true
+warn_unused_configs = true

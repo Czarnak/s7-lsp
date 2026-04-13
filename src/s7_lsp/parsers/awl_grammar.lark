@@ -1,0 +1,20 @@
+// ═══════════════════════════════════════════════════════════════
+//  S7 AWL/STL Grammar — STUB (Phase 5)
+//  Will handle .awl files (Statement List — stack-based assembly)
+//
+//  AWL is fundamentally different from SCL:
+//    A     I0.0       // AND input bit
+//    O     M1.0       // OR memory bit
+//    =     Q0.0       // Assign to output
+//    CALL  "MyFB"     // Call function block
+// ═══════════════════════════════════════════════════════════════
+
+start: instruction*
+
+instruction: OPCODE OPERAND?
+
+OPCODE: /[A-Z_]+/
+OPERAND: /[^\n]+/
+
+%ignore /\s+/
+%ignore /\/\/[^\n]*/
