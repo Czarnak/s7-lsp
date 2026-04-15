@@ -5,6 +5,7 @@ Performs checks specific to resource files:
 2. Missing language codes across blocks
 3. Empty entries (blocks with no translation strings)
 """
+
 from __future__ import annotations
 
 from s7_lsp.ast_nodes import (

@@ -215,7 +215,7 @@ def search_workspace_symbols(
                     block_container = "Resource"
                 else:
                     block_kind = _BLOCK_SYMBOL_KIND.get(block.kind, lsp.SymbolKind.Module)
-                    block_container = _BLOCK_KIND_LABEL.get(block.kind)
+                    block_container = _BLOCK_KIND_LABEL.get(block.kind, "")
                 results.append(
                     lsp.SymbolInformation(
                         name=block.name,

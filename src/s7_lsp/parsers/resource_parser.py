@@ -107,7 +107,7 @@ def _is_lang_code(key: str) -> bool:
     Examples: en-US, de-DE, fr-FR, zh-CN
     Plain 2-letter codes (en, de, fr) are treated as regular properties.
     """
-    return re.fullmatch(r'[a-z]{2}-[A-Z]{2}', key) is not None
+    return re.fullmatch(r"[a-z]{2}-[A-Z]{2}", key) is not None
 
 
 # ─── Tree → AST Extraction ───────────────────────────────────

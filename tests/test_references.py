@@ -274,7 +274,6 @@ def test_plain_variable_whole_word_match(parsed_doc_b, symbol_table_ab, document
         include_declaration=False,
         documents=documents_ab,
     )
-    found_lines = _lines(result)
     # Speed is on line 3 (declaration) and line 10 (#Speed > 0)
     # At minimum we should find it at least once (the declaration itself is found by regex)
     assert len(result) >= 1

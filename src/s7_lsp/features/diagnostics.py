@@ -48,7 +48,7 @@ def get_diagnostics(
             lsp_diagnostics.append(_to_lsp_diagnostic(sem_diag))
 
     # Resource diagnostics for .s7res files
-    if not has_parse_errors and document.uri.lower().endswith('.s7res'):
+    if not has_parse_errors and document.uri.lower().endswith(".s7res"):
         for res_diag in get_resource_diagnostics(document):
             lsp_diagnostics.append(_to_lsp_diagnostic(res_diag))
 
