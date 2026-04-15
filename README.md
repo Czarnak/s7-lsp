@@ -2,31 +2,37 @@
 
 Language Server Protocol implementation for Siemens S7 PLC languages.
 
-Provides code intelligence (diagnostics, symbols, navigation) for SCL/Structured Text, AWL/STL, and resource files — designed for integration with **Claude Code** and compatible LSP clients.
+Provides code intelligence for SCL/Structured Text and Siemens resource files, designed for integration with **Claude Code** and compatible LSP clients.
+
+Phases 1 through 4 from the product roadmap are complete: syntax support, semantic analysis, completion, and `.s7res` resource-file support are implemented. AWL/STL remains deferred.
 
 ## Supported Languages
 
 | Extension | Language | Status |
-|-----------|----------|--------|
-| `.scl`, `.st` | SCL / Structured Text | Phase 1 ✅ |
-| `.s7dcl`, `.udt`, `.db` | SCL Declarations | Phase 1 ✅ |
-| `.s7res` | Resource Files | Stub |
-| `.awl` | AWL / Statement List | Stub |
+| ----------- | ---------- | -------- |
+| `.scl`, `.st` | SCL / Structured Text | Phases 1-3 ✅ |
+| `.s7dcl`, `.udt`, `.db` | SCL Declarations | Phases 1-3 ✅ |
+| `.s7res` | Resource Files | Phase 4 ✅ |
+| `.awl` | AWL / Statement List | Deferred |
 
 ## Features
 
-### Phase 1 (Current)
-- **Syntax diagnostics** — parser errors with line/column positions
-- **Document symbols** — file outline (blocks, variable sections, declarations)
-- **Workspace symbols** — search across all open files
+### Implemented
 
-### Planned
-- **Go-to-definition** — jump to variable/block declarations
-- **Find references** — locate all usages of a symbol
-- **Hover** — type information and documentation
-- **Auto-completion** — keywords, variables, types, named parameters
-- **Resource file support** — multilingual text definitions
-- **AWL/STL support** — statement list parsing and diagnostics
+- **Syntax diagnostics** — parser errors with line/column positions
+- **Semantic diagnostics** — undeclared variables, unknown type/block references, duplicate declarations, invalid assignments, and related semantic checks
+- **Document symbols** — hierarchical outline of blocks, VAR sections, and declarations
+- **Workspace symbols** — search across all open files, including resource entries
+- **Go-to-definition** — jump to variable, block, DB field, and type declarations across open documents
+- **Find references** — locate symbol usages, with optional inclusion of declarations
+- **Hover** — variable, block, and built-in type information at the cursor
+- **Auto-completion** — keywords, variables, built-in types, UDTs, named parameters, block names, and member access
+- **Resource file support** — `.s7res` parsing, diagnostics, and symbol indexing for `MLC_` entries
+
+### Roadmap
+
+- **Grammar hardening and optimization** — broader real-world corpus testing, parser performance work, and incremental document sync
+- **AWL/STL support** — deferred and not part of the active roadmap
 
 ## Installation
 
@@ -113,16 +119,16 @@ s7-lsp/
 │   ├── parsers/
 │   │   ├── scl_grammar.lark # SCL grammar (lark EBNF)
 │   │   ├── scl_parser.py    # SCL parser + fallback scanner
-│   │   ├── resource_*.py    # Resource file parser (stub)
-│   │   └── awl_*.py         # AWL/STL parser (stub)
-│   ├── semantic/            # Symbol table, scopes, types (stub)
+│   │   ├── resource_*.py    # Resource file grammar and parser
+│   │   └── awl_*.py         # AWL/STL parser stubs (deferred)
+│   ├── semantic/            # Symbol table, scopes, semantic checks, type info
 │   └── features/            # LSP feature handlers
 │       ├── diagnostics.py   # Error/warning reporting
 │       ├── symbols.py       # Document/workspace symbols
-│       ├── completion.py    # Auto-complete (stub)
-│       ├── hover.py         # Type info (stub)
-│       ├── definition.py    # Go-to-definition (stub)
-│       └── references.py    # Find references (stub)
+│       ├── completion.py    # Context-aware completion
+│       ├── hover.py         # Hover information
+│       ├── definition.py    # Go-to-definition
+│       └── references.py    # Find references
 └── claude-code-plugin/      # Claude Code plugin config
     ├── plugin.json
     └── .lsp.json
