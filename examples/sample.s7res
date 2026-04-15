@@ -1,0 +1,20 @@
+// Sample S7 Resource File — Phase 4 reference
+// Format: MLC_<ID>: followed by indented language entries and properties
+
+MLC_Alarm_MotorOvertemp:
+  en-US: 'Motor overtemperature alarm'
+  de: 'Motor Uebertemperaturalarm'
+  fr-FR: 'Alarme de surchauffe moteur'
+  category: 'alarms'
+  priority: '1'
+
+MLC_Alarm_PressureHigh:
+  en-US: 'High pressure warning'
+  de: 'Hochdruckwarnung'
+  category: 'alarms'
+  priority: '2'
+
+MLC_Status_Running:
+  en-US: 'System running'
+  de: 'System laeuft'
+  fr-FR: 'Systeme en marche'

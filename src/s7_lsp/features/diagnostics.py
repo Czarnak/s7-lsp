@@ -11,6 +11,7 @@ from lsprotocol import types as lsp
 
 from s7_lsp.ast_nodes import Diagnostic as AstDiagnostic
 from s7_lsp.ast_nodes import ParsedDocument
+from s7_lsp.semantic.resource_diagnostics import get_resource_diagnostics
 from s7_lsp.semantic.semantic_diagnostics import get_semantic_diagnostics
 from s7_lsp.semantic.symbol_table import SymbolTable
 
@@ -33,6 +34,7 @@ def get_diagnostics(
     document change. It collects diagnostics from:
     1. The parser (syntax errors)
     2. (Phase 2) Semantic analysis (type errors, undeclared symbols)
+    3. (Phase 4) Resource diagnostics for .s7res files
     """
     lsp_diagnostics: list[lsp.Diagnostic] = []
 
@@ -44,6 +46,11 @@ def get_diagnostics(
     if not has_parse_errors and symbol_table is not None:
         for sem_diag in get_semantic_diagnostics(document, symbol_table):
             lsp_diagnostics.append(_to_lsp_diagnostic(sem_diag))
+
+    # Resource diagnostics for .s7res files
+    if not has_parse_errors and document.uri.lower().endswith('.s7res'):
+        for res_diag in get_resource_diagnostics(document):
+            lsp_diagnostics.append(_to_lsp_diagnostic(res_diag))
 
     return lsp_diagnostics
 

@@ -1,14 +1,39 @@
 // ═══════════════════════════════════════════════════════════════
-//  S7 Resource File Grammar — STUB (Phase 4)
-//  Will handle .s7res files (YAML-like config with MLC_ IDs)
+//  S7 Resource File Grammar — Phase 4
+//  Handles .s7res files (YAML-like config with MLC_ IDs)
 // ═══════════════════════════════════════════════════════════════
 
 start: entry*
 
-entry: IDENT ":" VALUE
+entry: entry_id property_line*
 
-IDENT: /[A-Za-z_]\w*/
-VALUE: /.+/
+entry_id: MLC_ID ":"
 
-%ignore /\s+/
-%ignore /#[^\n]*/
+property_line: PROPERTY_KEY ":" string_value
+
+string_value: SINGLE_QUOTED_STRING
+            | BARE_VALUE
+
+// ── Terminals ──────────────────────────────────────────────────
+
+// MLC_ prefixed IDs — highest priority so they are never matched as PROPERTY_KEY
+MLC_ID.3: /MLC_[A-Za-z0-9_]+/
+
+// Property key (unified): language codes and regular properties
+// Matches identifiers with optional hyphen (for BCP-47 like en-US)
+PROPERTY_KEY: /[A-Za-z_][A-Za-z0-9_-]*/
+
+// Single-quoted string value
+SINGLE_QUOTED_STRING: /'[^']*'/
+
+// Bare (unquoted) value — rest of line, must not start with whitespace or quote
+BARE_VALUE: /[^\n\s'][^\n]*/
+
+// ── Ignored tokens ─────────────────────────────────────────────
+
+COMMENT_LINE: /\/\/[^\n]*/
+COMMENT_BLOCK: /\(\*([^*]|\*(?!\)))*\*\)/
+
+%ignore COMMENT_LINE
+%ignore COMMENT_BLOCK
+%ignore /[ \t\r\n]+/

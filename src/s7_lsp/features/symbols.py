@@ -60,6 +60,14 @@ _VAR_SECTION_LABEL: dict[VarSectionKind, str] = {
 }
 
 
+# ─── Resource Entry Detection ────────────────────────────────
+
+
+def _is_resource_entry(block: BlockDeclaration) -> bool:
+    """Return True when the block represents an MLC_ resource entry."""
+    return block.name.startswith("MLC_")
+
+
 # ─── Document Symbols ────────────────────────────────────────
 
 
@@ -80,6 +88,57 @@ def get_document_symbols(document: ParsedDocument) -> list[lsp.DocumentSymbol]:
 
 def _block_to_symbol(block: BlockDeclaration) -> lsp.DocumentSymbol:
     """Convert a block declaration to an LSP DocumentSymbol with children."""
+    block_range = _to_lsp_range(block.range)
+
+    if _is_resource_entry(block):
+        # Count language entries: VAR section declarations with type_name == "STRING"
+        lang_count = sum(
+            1
+            for section in block.var_sections
+            for decl in section.declarations
+            if section.kind == VarSectionKind.VAR and decl.type_name == "STRING"
+        )
+        detail = f"Resource: {lang_count} language(s)"
+
+        children: list[lsp.DocumentSymbol] = []
+        for section in block.var_sections:
+            if section.kind == VarSectionKind.VAR:
+                # Language entries
+                for decl in section.declarations:
+                    decl_range = _to_lsp_range(decl.range)
+                    children.append(
+                        lsp.DocumentSymbol(
+                            name=decl.name,
+                            detail=decl.attribute or "",
+                            kind=lsp.SymbolKind.String,
+                            range=decl_range,
+                            selection_range=decl_range,
+                        )
+                    )
+            elif section.kind == VarSectionKind.VAR_CONSTANT:
+                # Property entries
+                for decl in section.declarations:
+                    decl_range = _to_lsp_range(decl.range)
+                    children.append(
+                        lsp.DocumentSymbol(
+                            name=decl.name,
+                            detail=decl.type_name,
+                            kind=lsp.SymbolKind.Property,
+                            range=decl_range,
+                            selection_range=decl_range,
+                        )
+                    )
+
+        return lsp.DocumentSymbol(
+            name=block.name,
+            detail=detail,
+            kind=lsp.SymbolKind.String,
+            range=block_range,
+            selection_range=block_range,
+            children=children if children else None,
+        )
+
+    # Standard SCL block handling (unchanged)
     kind_label = _BLOCK_KIND_LABEL.get(block.kind, "")
     detail = kind_label
     if block.return_type:
@@ -87,9 +146,7 @@ def _block_to_symbol(block: BlockDeclaration) -> lsp.DocumentSymbol:
     if block.version:
         detail += f" v{block.version}"
 
-    block_range = _to_lsp_range(block.range)
-
-    children: list[lsp.DocumentSymbol] = []
+    children = []
     for section in block.var_sections:
         section_symbol = _var_section_to_symbol(section)
         children.append(section_symbol)
@@ -153,15 +210,21 @@ def search_workspace_symbols(
     for uri, doc in documents.items():
         for block in doc.blocks:
             if query_lower in block.name.lower():
+                if _is_resource_entry(block):
+                    block_kind = lsp.SymbolKind.String
+                    block_container = "Resource"
+                else:
+                    block_kind = _BLOCK_SYMBOL_KIND.get(block.kind, lsp.SymbolKind.Module)
+                    block_container = _BLOCK_KIND_LABEL.get(block.kind)
                 results.append(
                     lsp.SymbolInformation(
                         name=block.name,
-                        kind=_BLOCK_SYMBOL_KIND.get(block.kind, lsp.SymbolKind.Module),
+                        kind=block_kind,
                         location=lsp.Location(
                             uri=uri,
                             range=_to_lsp_range(block.range),
                         ),
-                        container_name=_BLOCK_KIND_LABEL.get(block.kind),
+                        container_name=block_container,
                     )
                 )
 
