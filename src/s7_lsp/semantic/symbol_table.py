@@ -90,15 +90,15 @@ class SymbolTable:
     """Tracks all symbols across a workspace.
 
     Internal storage:
-      _blocks: dict[str, BlockSymbol]
-          lowercase block name -> BlockSymbol
-      _document_blocks: dict[str, set[str]]
-          uri -> set of lowercase block names registered from that document
+      _blocks: dict[str, list[BlockSymbol]]
+          lowercase block name -> live BlockSymbols in registration order
+      _document_blocks: dict[str, list[BlockSymbol]]
+          uri -> blocks registered from that document
     """
 
     def __init__(self) -> None:
-        self._blocks: dict[str, BlockSymbol] = {}
-        self._document_blocks: dict[str, set[str]] = {}
+        self._blocks: dict[str, list[BlockSymbol]] = {}
+        self._document_blocks: dict[str, list[BlockSymbol]] = {}
 
     # ── Public API ────────────────────────────────────────────
 
@@ -119,29 +119,37 @@ class SymbolTable:
         # Invalidate old entries for this URI first.
         self.remove_document(uri)
 
-        registered_names: set[str] = set()
+        registered_blocks: list[BlockSymbol] = []
 
         for block in blocks:
             block_symbol = self._build_block_symbol(uri, block)
             key = block_symbol.name.lower()
-            self._blocks[key] = block_symbol
-            registered_names.add(key)
+            self._blocks.setdefault(key, []).append(block_symbol)
+            registered_blocks.append(block_symbol)
 
-        self._document_blocks[uri] = registered_names
+        self._document_blocks[uri] = registered_blocks
 
     def remove_document(self, uri: str) -> None:
         """Remove all symbols that were registered from *uri*."""
         if uri not in self._document_blocks:
             return
-        for name_key in self._document_blocks.pop(uri):
-            self._blocks.pop(name_key, None)
+        for block in self._document_blocks.pop(uri):
+            name_key = block.name.lower()
+            remaining = [sym for sym in self._blocks.get(name_key, []) if sym.definition_uri != uri]
+            if remaining:
+                self._blocks[name_key] = remaining
+            else:
+                self._blocks.pop(name_key, None)
 
     def lookup_block(self, name: str) -> BlockSymbol | None:
         """Case-insensitive block name lookup.
 
         Returns ``None`` if no block with that name is registered.
         """
-        return self._blocks.get(name.lower())
+        matches = self._blocks.get(name.lower())
+        if not matches:
+            return None
+        return matches[-1]
 
     def lookup_variable(self, name: str, block_name: str) -> VariableSymbol | None:
         """Find a variable by name within a specific block.
@@ -158,9 +166,17 @@ class SymbolTable:
                 return var
         return None
 
+    def lookup_variable_in_block(self, name: str, block: BlockSymbol) -> VariableSymbol | None:
+        """Find a variable by name within a concrete block symbol."""
+        name_lower = name.lower()
+        for var in block.all_variables:
+            if var.name.lower() == name_lower:
+                return var
+        return None
+
     def get_all_blocks(self) -> list[BlockSymbol]:
         """Return all registered :class:`BlockSymbol` objects."""
-        return list(self._blocks.values())
+        return [block for blocks in self._blocks.values() for block in blocks]
 
     def get_variables_in_block(self, block_name: str) -> list[VariableSymbol]:
         """Return all variables declared in the named block.
@@ -181,16 +197,17 @@ class SymbolTable:
         """
         if uri not in self._document_blocks:
             return None
-        for name_key in self._document_blocks[uri]:
-            block = self._blocks.get(name_key)
-            if block is None:
-                continue
+        for block in self._document_blocks[uri]:
             if (
                 block.definition_uri == uri
                 and block.definition_range_start_line <= line <= block.definition_range_end_line
             ):
                 return block
         return None
+
+    def lookup_variable_type_block(self, variable: VariableSymbol) -> BlockSymbol | None:
+        """Return the block/type referenced by a variable's type name."""
+        return self.lookup_block(variable.type_name)
 
     # ── Legacy helpers (kept for backward compatibility) ──────
 

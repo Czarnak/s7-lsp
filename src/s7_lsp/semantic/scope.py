@@ -48,7 +48,7 @@ class ScopeManager:
         block = self._symbol_table.get_block_at(uri, position_line)
         if block is None:
             return []
-        return self._symbol_table.get_variables_in_block(block.name)
+        return list(block.all_variables)
 
     def get_block_at_position(self, uri: str, position_line: int) -> BlockSymbol | None:
         """Return the block that contains *position_line* in *uri*, or ``None``.
@@ -64,6 +64,10 @@ class ScopeManager:
             Zero-based line number of the cursor.
         """
         return self._symbol_table.get_block_at(uri, position_line)
+
+    def lookup_variable_type_block(self, variable: VariableSymbol) -> BlockSymbol | None:
+        """Return the block/type referenced by a variable's type name."""
+        return self._symbol_table.lookup_variable_type_block(variable)
 
     def resolve_name(self, name: str, uri: str, position_line: int) -> Symbol | None:
         """Resolve a single identifier to its :class:`Symbol`.
@@ -87,7 +91,7 @@ class ScopeManager:
         # 1. Try local variable in the enclosing block.
         block = self._symbol_table.get_block_at(uri, position_line)
         if block is not None:
-            var = self._symbol_table.lookup_variable(name, block.name)
+            var = self._symbol_table.lookup_variable_in_block(name, block)
             if var is not None:
                 return var
 
@@ -136,7 +140,7 @@ class ScopeManager:
         # Strategy B: first part is a local variable whose type is a block.
         block = self._symbol_table.get_block_at(uri, position_line)
         if block is not None:
-            var = self._symbol_table.lookup_variable(first, block.name)
+            var = self._symbol_table.lookup_variable_in_block(first, block)
             if var is not None:
                 # Use the variable's type_name as the block name.
                 type_block = self._symbol_table.lookup_block(var.type_name)

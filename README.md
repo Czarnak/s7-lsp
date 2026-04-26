@@ -1,8 +1,8 @@
 # S7-LSP
 
-Language Server Protocol implementation for Siemens S7 PLC languages.
+Language Server Protocol server implementation for Siemens S7 PLC languages.
 
-Provides code intelligence for SCL/Structured Text and Siemens resource files, designed for integration with **Claude Code** and compatible LSP clients.
+Provides code intelligence for SCL/Structured Text and Siemens resource files in compatible editors and LSP clients.
 
 Phases 1 through 4 from the product roadmap are complete: syntax support, semantic analysis, completion, and `.s7res` resource-file support are implemented. AWL/STL remains deferred.
 
@@ -54,41 +54,6 @@ Verify installation:
 s7-lsp --version
 ```
 
-## Claude Code Integration
-
-### Option 1: Local Plugin
-
-1. Install `s7-lsp` so the binary is in your `$PATH`
-2. Copy the `claude-code-plugin/` directory into your project or a shared location
-3. Register the plugin with Claude Code:
-
-```bash
-claude plugin install ./claude-code-plugin
-```
-
-### Option 2: Project-Level Configuration
-
-Add to your project's `.claude/settings.json`:
-
-```json
-{
-  "enabledPlugins": ["s7-lsp"]
-}
-```
-
-### Option 3: Direct .lsp.json
-
-Place `.lsp.json` in your project root with the server configuration (see `claude-code-plugin/.lsp.json` for the format).
-
-### Verify LSP is Active
-
-```bash
-export ENABLE_LSP_TOOL=1
-claude
-```
-
-When editing `.scl` files, Claude Code will automatically receive diagnostics and can navigate your PLC code structure.
-
 ## Development
 
 ```bash
@@ -105,6 +70,10 @@ ruff format src/
 # Type check
 pip install mypy
 mypy src/s7_lsp/ --ignore-missing-imports
+
+# Test
+pip install pytest
+pytest -q
 ```
 
 ## Architecture
@@ -129,15 +98,8 @@ s7-lsp/
 │       ├── hover.py         # Hover information
 │       ├── definition.py    # Go-to-definition
 │       └── references.py    # Find references
-└── claude-code-plugin/      # Claude Code plugin config
-    ├── plugin.json
-    └── .lsp.json
 ```
 
 ## License
 
 MIT
-
----
-
-*Created with Claude AI*

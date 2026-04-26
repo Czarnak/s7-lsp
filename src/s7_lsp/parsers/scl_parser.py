@@ -32,6 +32,14 @@ from s7_lsp.ast_nodes import (
     VarSection,
     VarSectionKind,
 )
+from s7_lsp.parsers.parser_utils import (
+    generic_parse_diagnostic,
+    unexpected_char_diagnostic,
+    unexpected_token_diagnostic,
+)
+from s7_lsp.parsers.parser_utils import (
+    tree_range as _tree_range,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -83,13 +91,15 @@ def parse_scl(source: str, uri: str = "") -> ParsedDocument:
         doc.tree = tree
         doc.blocks = _extract_blocks(tree)
     except UnexpectedCharacters as e:
-        doc.diagnostics.append(_unexpected_char_diagnostic(e))
+        doc.diagnostics.append(unexpected_char_diagnostic(e))
         doc.blocks = _fallback_extract_blocks(source)
     except UnexpectedToken as e:
-        doc.diagnostics.append(_unexpected_token_diagnostic(e))
+        doc.diagnostics.append(
+            unexpected_token_diagnostic(e, clean_expected=_clean_expected_tokens)
+        )
         doc.blocks = _fallback_extract_blocks(source)
     except UnexpectedInput as e:
-        doc.diagnostics.append(_generic_parse_diagnostic(e))
+        doc.diagnostics.append(generic_parse_diagnostic(e))
         doc.blocks = _fallback_extract_blocks(source)
     except Exception as e:
         # Catch-all for unexpected parser failures — don't crash the LSP
@@ -352,84 +362,6 @@ def _name_to_string(node: Tree) -> str:
     token = node.children[0]
     value = str(token)
     return value.strip('"') if value.startswith('"') else value
-
-
-# ─── Position Helpers ─────────────────────────────────────────
-
-
-def _tree_range(node: Tree) -> Range:
-    """Extract source range from a lark Tree node.
-
-    Lark populates line/column on nodes when propagate_positions=True.
-    Line is 1-based in lark, we convert to 0-based for LSP.
-    """
-    start_line = getattr(node.meta, "line", 1) - 1
-    start_col = getattr(node.meta, "column", 1) - 1
-    end_line = getattr(node.meta, "end_line", start_line + 1) - 1
-    end_col = getattr(node.meta, "end_column", start_col + 1) - 1
-
-    return Range(
-        start=Position(line=max(0, start_line), character=max(0, start_col)),
-        end=Position(line=max(0, end_line), character=max(0, end_col)),
-    )
-
-
-# ─── Error → Diagnostic Conversion ───────────────────────────
-
-
-def _unexpected_char_diagnostic(e: UnexpectedCharacters) -> Diagnostic:
-    """Convert lark UnexpectedCharacters to a Diagnostic."""
-    line = (e.line or 1) - 1
-    col = (e.column or 1) - 1
-    char = e.char if hasattr(e, "char") and e.char else "?"
-
-    return Diagnostic(
-        message=f"Unexpected character: '{char}'",
-        range=Range(
-            start=Position(line=line, character=col),
-            end=Position(line=line, character=col + 1),
-        ),
-        severity=1,
-    )
-
-
-def _unexpected_token_diagnostic(e: UnexpectedToken) -> Diagnostic:
-    """Convert lark UnexpectedToken to a Diagnostic."""
-    line = (e.line or 1) - 1
-    col = (e.column or 1) - 1
-    token = str(e.token) if e.token else "?"
-
-    # Build a helpful message with expected tokens
-    expected = ""
-    if e.expected:
-        # Filter and clean up expected token names
-        clean = _clean_expected_tokens(e.expected)
-        if clean:
-            expected = f" (expected: {', '.join(sorted(clean)[:5])})"
-
-    return Diagnostic(
-        message=f"Unexpected token: '{token}'{expected}",
-        range=Range(
-            start=Position(line=line, character=col),
-            end=Position(line=line, character=col + len(token)),
-        ),
-        severity=1,
-    )
-
-
-def _generic_parse_diagnostic(e: UnexpectedInput) -> Diagnostic:
-    """Convert any UnexpectedInput to a Diagnostic."""
-    line = (getattr(e, "line", 1) or 1) - 1
-    col = (getattr(e, "column", 1) or 1) - 1
-
-    return Diagnostic(
-        message=f"Syntax error: {e}",
-        range=Range(
-            start=Position(line=line, character=col),
-            end=Position(line=line, character=col + 1),
-        ),
-        severity=1,
-    )
 
 
 def _clean_expected_tokens(expected: set[str]) -> list[str]:

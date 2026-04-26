@@ -6,7 +6,7 @@ extract parameters, delegate to the workspace and feature modules,
 and return LSP protocol types.
 
 Architecture:
-    Client (Claude Code / VS Code)
+    Client (editor / IDE)
       ↕ JSON-RPC over stdio
     Server (this module)
       → Workspace (document state, parser routing)
@@ -54,8 +54,7 @@ def create_server() -> LanguageServer:
     def on_initialize(params: lsp.InitializeParams) -> lsp.InitializeResult:
         """Handle the initialize request — declare server capabilities.
 
-        This tells the client what features we support. Claude Code
-        checks these capabilities to know which LSP tools to enable.
+        This tells the client which LSP features are available.
         """
         logger.info("Initializing S7-LSP v%s", __version__)
 
@@ -139,6 +138,17 @@ def create_server() -> LanguageServer:
             doc = workspace.update_document(uri, params.text)
             _publish_diagnostics(server, uri, doc, workspace.symbol_table)
 
+    @server.feature(lsp.TEXT_DOCUMENT_DIAGNOSTIC)
+    def on_document_diagnostic(
+        params: lsp.DocumentDiagnosticParams,
+    ) -> lsp.FullDocumentDiagnosticReport:
+        """Return pull diagnostics for clients using textDocument/diagnostic."""
+        doc = workspace.get_document(params.text_document.uri)
+        if doc is None:
+            return lsp.FullDocumentDiagnosticReport(items=[])
+
+        return lsp.FullDocumentDiagnosticReport(items=get_diagnostics(doc, workspace.symbol_table))
+
     # ─── Document Symbols ─────────────────────────────────
 
     @server.feature(lsp.TEXT_DOCUMENT_DOCUMENT_SYMBOL)
@@ -147,8 +157,8 @@ def create_server() -> LanguageServer:
     ) -> list[lsp.DocumentSymbol] | None:
         """Return document symbols (file outline).
 
-        Claude Code uses this to understand the structure of an SCL file:
-        which blocks are defined, what variables they declare.
+        LSP clients use this to understand the structure of an SCL file:
+        which blocks are defined and what variables they declare.
         """
         doc = workspace.get_document(params.text_document.uri)
         if doc is None:
@@ -163,8 +173,8 @@ def create_server() -> LanguageServer:
     ) -> list[lsp.SymbolInformation] | None:
         """Search for symbols across all open documents.
 
-        Claude Code uses this when it needs to find a block or variable
-        by name across the workspace.
+        LSP clients use this to find a block or variable by name across
+        the workspace.
         """
         return search_workspace_symbols(params.query, workspace.documents)
 

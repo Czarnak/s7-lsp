@@ -387,6 +387,64 @@ class TestGetAllBlocks:
         assert table.get_all_blocks() == []
 
 
+class TestDuplicateBlockNames:
+    def test_same_name_in_two_uris_survives_removing_either_uri(self, table):
+        """Removing one URI does not delete another URI's same-name block."""
+        table.add_from_document(URI_A, [_make_fb("Shared", start_line=0, end_line=10)])
+        table.add_from_document(URI_B, [_make_fb("Shared", start_line=20, end_line=30)])
+
+        shared = table.lookup_block("Shared")
+        assert shared is not None
+        assert shared.definition_uri == URI_B
+
+        table.remove_document(URI_A)
+        shared = table.lookup_block("Shared")
+        assert shared is not None
+        assert shared.definition_uri == URI_B
+
+        table.add_from_document(URI_A, [_make_fb("Shared", start_line=40, end_line=50)])
+        shared = table.lookup_block("Shared")
+        assert shared is not None
+        assert shared.definition_uri == URI_A
+
+        table.remove_document(URI_A)
+        shared = table.lookup_block("Shared")
+        assert shared is not None
+        assert shared.definition_uri == URI_B
+
+    def test_reregistering_one_uri_only_updates_that_uri(self, table):
+        """Re-registering a URI preserves same-name blocks from other URIs."""
+        table.add_from_document(URI_A, [_make_fb("Shared", start_line=0, end_line=10)])
+        table.add_from_document(URI_B, [_make_fb("Shared", start_line=20, end_line=30)])
+
+        table.add_from_document(URI_A, [_make_fb("Shared", start_line=40, end_line=50)])
+
+        shared = table.lookup_block("Shared")
+        assert shared is not None
+        assert shared.definition_uri == URI_A
+        block_a = table.get_block_at(URI_A, 45)
+        block_b = table.get_block_at(URI_B, 25)
+        assert block_a is not None
+        assert block_b is not None
+        assert block_a.definition_range_start_line == 40
+        assert block_b.definition_range_start_line == 20
+
+        table.remove_document(URI_A)
+        shared = table.lookup_block("Shared")
+        assert shared is not None
+        assert shared.definition_uri == URI_B
+
+    def test_get_all_blocks_includes_duplicate_names_from_different_documents(self, table):
+        """get_all_blocks preserves same-name blocks from different documents."""
+        table.add_from_document(URI_A, [_make_fb("Shared")])
+        table.add_from_document(URI_B, [_make_fb("Shared")])
+
+        blocks = table.get_all_blocks()
+
+        assert [block.name for block in blocks].count("Shared") == 2
+        assert {block.definition_uri for block in blocks} == {URI_A, URI_B}
+
+
 class TestGetVariablesInBlock:
     def test_returns_empty_list_for_unknown_block(self, table):
         """get_variables_in_block returns [] for an unregistered block."""

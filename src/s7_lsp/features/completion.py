@@ -376,6 +376,7 @@ def _member_completions(
     char: int,
     scope_mgr: ScopeManager,
     uri: str,
+    symbol_table: SymbolTable | None = None,
 ) -> list[lsp.CompletionItem]:
     """Return field completion items for the identifier before the dot."""
     lines = source.splitlines(keepends=False)
@@ -398,7 +399,10 @@ def _member_completions(
     if isinstance(sym, BlockSymbol):
         target_block = sym
     elif isinstance(sym, VariableSymbol):
-        target_block = scope_mgr._symbol_table.lookup_block(sym.type_name)
+        if symbol_table is not None:
+            target_block = symbol_table.lookup_variable_type_block(sym)
+        else:
+            target_block = scope_mgr.lookup_variable_type_block(sym)
 
     if target_block is None:
         return []
@@ -488,7 +492,14 @@ def get_completions(
     elif context == ContextKind.AFTER_DOT and symbol_table is not None:
         scope_mgr = ScopeManager(symbol_table)
         items.extend(
-            _member_completions(source, position.line, position.character, scope_mgr, document.uri)
+            _member_completions(
+                source,
+                position.line,
+                position.character,
+                scope_mgr,
+                document.uri,
+                symbol_table,
+            )
         )
     elif context == ContextKind.INSIDE_QUOTES and symbol_table is not None:
         items.extend(_block_name_completions(symbol_table))

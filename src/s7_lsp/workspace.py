@@ -27,7 +27,7 @@ from s7_lsp.semantic.symbol_table import SymbolTable
 
 logger = logging.getLogger(__name__)
 
-# Extension → language ID mapping (matches .lsp.json config)
+# Extension → language ID mapping used by LSP clients
 _EXTENSION_TO_LANGUAGE: dict[str, str] = {
     ".scl": "siemens-scl",
     ".st": "siemens-scl",

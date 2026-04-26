@@ -1,8 +1,7 @@
 """Document and workspace symbol providers.
 
 Provides the file outline (document symbols) and workspace-wide symbol
-search. Claude Code uses these for navigation — when it asks "what's
-in this file?" or "find the FB named X", these handlers respond.
+search. LSP clients use these for navigation and symbol lookup.
 
 Document symbols return a hierarchy:
     FUNCTION_BLOCK "MyFB"
@@ -201,7 +200,7 @@ def search_workspace_symbols(
 ) -> list[lsp.SymbolInformation]:
     """Search for symbols across the workspace matching a query string.
 
-    Claude Code uses this when searching for a block or variable by name
+    LSP clients use this when searching for a block or variable by name
     across all open files.
     """
     results: list[lsp.SymbolInformation] = []

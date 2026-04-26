@@ -173,6 +173,38 @@ class TestGetVisibleVariables:
         assert names == {"speed", "running"}
         assert "setpoint" not in names
 
+    def test_duplicate_block_names_use_cursor_document_block(self, table):
+        """Same-name blocks in other files do not affect visible locals."""
+        first = _make_block(
+            name="Shared",
+            start_line=0,
+            end_line=20,
+            var_sections=[
+                _var_section(
+                    VarSectionKind.VAR,
+                    [_var_decl("firstOnly", "INT", VarSectionKind.VAR, line=5)],
+                )
+            ],
+        )
+        second = _make_block(
+            name="Shared",
+            start_line=0,
+            end_line=20,
+            var_sections=[
+                _var_section(
+                    VarSectionKind.VAR,
+                    [_var_decl("secondOnly", "INT", VarSectionKind.VAR, line=5)],
+                )
+            ],
+        )
+        table.add_from_document(URI, [first])
+        table.add_from_document(OTHER_URI, [second])
+        sm = ScopeManager(table)
+
+        names = {var.name for var in sm.get_visible_variables(URI, position_line=10)}
+
+        assert names == {"firstOnly"}
+
 
 # ─── get_block_at_position ────────────────────────────────────
 
@@ -205,6 +237,39 @@ class TestResolveName:
         assert sym is not None
         assert isinstance(sym, VariableSymbol)
         assert sym.name == "setpoint"
+
+    def test_duplicate_block_names_resolve_local_from_cursor_document(self, table):
+        """Local resolution uses the concrete block at the cursor."""
+        first = _make_block(
+            name="Shared",
+            start_line=0,
+            end_line=20,
+            var_sections=[
+                _var_section(
+                    VarSectionKind.VAR,
+                    [_var_decl("firstOnly", "INT", VarSectionKind.VAR, line=5)],
+                )
+            ],
+        )
+        second = _make_block(
+            name="Shared",
+            start_line=0,
+            end_line=20,
+            var_sections=[
+                _var_section(
+                    VarSectionKind.VAR,
+                    [_var_decl("secondOnly", "INT", VarSectionKind.VAR, line=5)],
+                )
+            ],
+        )
+        table.add_from_document(URI, [first])
+        table.add_from_document(OTHER_URI, [second])
+        sm = ScopeManager(table)
+
+        sym = sm.resolve_name("firstOnly", URI, position_line=10)
+
+        assert isinstance(sym, VariableSymbol)
+        assert sym.definition_uri == URI
 
     def test_local_variable_has_priority_over_block_with_same_name(self, table):
         """When a local variable and a global block share a name, the variable wins."""

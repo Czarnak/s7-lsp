@@ -1,7 +1,7 @@
 """Entry point for the S7-LSP language server.
 
 This module is invoked when running `s7-lsp` from the command line.
-Claude Code discovers this binary via .lsp.json and communicates over stdio.
+LSP clients can launch this binary and communicate over stdio.
 """
 
 import argparse
@@ -27,7 +27,7 @@ def main() -> None:
         "--stdio",
         action="store_true",
         default=True,
-        help="Use stdio transport (default, required by Claude Code)",
+        help="Use stdio transport (default for editor LSP clients)",
     )
     parser.add_argument(
         "--log-level",

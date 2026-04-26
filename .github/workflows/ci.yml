@@ -36,6 +36,9 @@ jobs:
       - name: Type check with mypy
         run: mypy src/s7_lsp/ --ignore-missing-imports
 
+      - name: Run tests
+        run: pytest -q -p no:cacheprovider
+
   build:
     runs-on: ubuntu-latest
     needs: lint
