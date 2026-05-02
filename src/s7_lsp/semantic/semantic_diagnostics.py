@@ -78,6 +78,7 @@ def get_semantic_diagnostics(
     for block in doc.blocks:
         results.extend(_check_duplicate_declarations(block))
         results.extend(_check_undeclared_type_references(block, symbol_table))
+        results.extend(_check_cross_document_duplicate(block, symbol_table, doc.uri))
         if source_lines:
             results.extend(_check_undeclared_variable_usage(block, source_lines))
             if block.kind == BlockKind.FUNCTION_BLOCK:
@@ -169,6 +170,30 @@ def _check_undeclared_type_references(
     return diagnostics
 
 
+# ─── Check: Cross-document duplicate block name ────────────────
+
+
+def _check_cross_document_duplicate(
+    block: BlockDeclaration,
+    symbol_table: SymbolTable,
+    current_uri: str,
+) -> list[Diagnostic]:
+    """Warn when the same block name is defined in another open document."""
+    all_symbols = symbol_table.lookup_all_blocks(block.name)
+    other_uris = [sym.definition_uri for sym in all_symbols if sym.definition_uri != current_uri]
+    if not other_uris:
+        return []
+    short_names = ", ".join(uri.rstrip("/").split("/")[-1] for uri in other_uris)
+    return [
+        Diagnostic(
+            message=f"Block '{block.name}' is already defined in: {short_names}",
+            range=block.range,
+            severity=2,  # Warning
+            source="s7-lsp",
+        )
+    ]
+
+
 # ─── Check 3: Undeclared #variable usage ──────────────────────
 
 
@@ -203,7 +228,10 @@ def _check_undeclared_variable_usage(
     reported: set[str] = set()  # avoid duplicate errors for the same name
 
     for line_idx, line_text in _block_body_lines(block, source_lines):
-        for match in _HASH_IDENT_RE.finditer(line_text):
+        if line_text.lstrip().startswith("//"):
+            continue
+        code_part, _, _ = line_text.partition("//")
+        for match in _HASH_IDENT_RE.finditer(code_part):
             ident = match.group(1)
             if ident.lower() not in declared and ident.lower() not in reported:
                 reported.add(ident.lower())

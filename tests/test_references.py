@@ -295,3 +295,40 @@ def test_variable_references_confined_to_defining_uri(parsed_doc_a, symbol_table
         documents=documents_ab,
     )
     assert all(loc.uri == _URI_A for loc in result)
+
+
+# ---------------------------------------------------------------------------
+# Comment-line exclusion in find-references
+# ---------------------------------------------------------------------------
+
+_COMMENT_SKIP_URI = "file:///test/comment_skip.scl"
+
+_COMMENT_SKIP_SOURCE = """\
+FUNCTION_BLOCK "CommentFB"
+VAR
+  Speed : INT;
+END_VAR
+  // Speed := 10;
+  Speed := 42;
+END_FUNCTION_BLOCK
+"""
+
+
+def test_references_skip_full_line_comments():
+    """References must not match identifiers that appear only inside // comments."""
+    doc = parse_scl(_COMMENT_SKIP_SOURCE, _COMMENT_SKIP_URI)
+    st = SymbolTable()
+    st.add_from_document(_COMMENT_SKIP_URI, doc.blocks)
+
+    result = get_references(
+        doc,
+        lsp.Position(line=5, character=2),
+        _COMMENT_SKIP_SOURCE,
+        st,
+        include_declaration=False,
+        documents={_COMMENT_SKIP_URI: _COMMENT_SKIP_SOURCE},
+    )
+
+    ref_lines = [loc.range.start.line for loc in result]
+    assert 4 not in ref_lines, "Line 4 is a comment line - must not appear in references"
+    assert 5 in ref_lines, "Line 5 has a real usage - must appear in references"

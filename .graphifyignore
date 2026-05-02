@@ -25,7 +25,7 @@ Thumbs.db
 production/
 test.py
 .coverage
-graphify-out/cache/
+
 vendor/
 node_modules/
 dist/

@@ -524,3 +524,92 @@ class TestCleanSourceProducesNoDiagnostics:
 
         assert not dup_warnings, f"Unexpected duplicate warnings: {dup_warnings}"
         assert not var_input_errors, f"Unexpected VAR_INPUT errors: {var_input_errors}"
+
+
+# ---------------------------------------------------------------------------
+# Cross-document duplicate block name detection
+# ---------------------------------------------------------------------------
+
+_URI_DUP_A = "file:///workspace/dup_a.scl"
+_URI_DUP_B = "file:///workspace/dup_b.scl"
+
+_DUP_SOURCE_A = """\
+FUNCTION_BLOCK "SharedFB"
+VAR
+  x : INT;
+END_VAR
+END_FUNCTION_BLOCK
+"""
+
+_DUP_SOURCE_B = """\
+FUNCTION_BLOCK "SharedFB"
+VAR
+  y : REAL;
+END_VAR
+END_FUNCTION_BLOCK
+"""
+
+
+def test_duplicate_block_name_across_documents_reports_warning():
+    """When two open docs define the same block name, each gets a Warning diagnostic."""
+    st = SymbolTable()
+    doc_a = parse_scl(_DUP_SOURCE_A, _URI_DUP_A)
+    doc_b = parse_scl(_DUP_SOURCE_B, _URI_DUP_B)
+    st.add_from_document(_URI_DUP_A, doc_a.blocks)
+    st.add_from_document(_URI_DUP_B, doc_b.blocks)
+
+    diags_a = get_semantic_diagnostics(doc_a, st)
+    diags_b = get_semantic_diagnostics(doc_b, st)
+
+    dup_a = [d for d in diags_a if "SharedFB" in d.message and d.severity == 2]
+    dup_b = [d for d in diags_b if "SharedFB" in d.message and d.severity == 2]
+
+    assert dup_a, "Expected a Warning diagnostic for duplicate block in doc_a"
+    assert dup_b, "Expected a Warning diagnostic for duplicate block in doc_b"
+
+
+def test_unique_block_name_no_duplicate_warning():
+    """When each doc defines a unique block name, no duplicate warnings are emitted."""
+    unique_a = 'FUNCTION_BLOCK "OnlyInA"\nVAR\n  x : INT;\nEND_VAR\nEND_FUNCTION_BLOCK\n'
+    unique_b = 'FUNCTION_BLOCK "OnlyInB"\nVAR\n  y : REAL;\nEND_VAR\nEND_FUNCTION_BLOCK\n'
+
+    st = SymbolTable()
+    doc_a = parse_scl(unique_a, _URI_DUP_A)
+    doc_b = parse_scl(unique_b, _URI_DUP_B)
+    st.add_from_document(_URI_DUP_A, doc_a.blocks)
+    st.add_from_document(_URI_DUP_B, doc_b.blocks)
+
+    for doc in (doc_a, doc_b):
+        diags = get_semantic_diagnostics(doc, st)
+        dup_diags = [d for d in diags if d.severity == 2 and "already defined" in d.message]
+        assert not dup_diags, f"Unexpected duplicate warning: {dup_diags}"
+
+
+# ---------------------------------------------------------------------------
+# Comment-line exclusion in undeclared variable usage check
+# ---------------------------------------------------------------------------
+
+_COMMENT_DIAG_URI = "file:///test/comment_diag.scl"
+
+_COMMENT_DIAG_SOURCE = """\
+FUNCTION_BLOCK "DiagFB"
+VAR
+  Speed : INT;
+END_VAR
+  // #Ghost := 0;
+  #Speed := 42;
+END_FUNCTION_BLOCK
+"""
+
+
+def test_semantic_diagnostics_skip_hash_vars_in_comment_lines():
+    """Hash variable usage on commented-out lines must not trigger undeclared warnings."""
+    doc = parse_scl(_COMMENT_DIAG_SOURCE, _COMMENT_DIAG_URI)
+    st = SymbolTable()
+    st.add_from_document(_COMMENT_DIAG_URI, doc.blocks)
+
+    diags = get_semantic_diagnostics(doc, st)
+    ghost_diags = [d for d in diags if "Ghost" in d.message]
+    assert not ghost_diags, (
+        f"#Ghost is inside a comment but triggered an undeclared warning: {ghost_diags}"
+    )

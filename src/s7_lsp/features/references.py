@@ -114,7 +114,10 @@ def _find_occurrences(source: str, pattern: re.Pattern, uri: str) -> list[lsp.Lo
         return []
     locations: list[lsp.Location] = []
     for line_num, line_text in enumerate(source.splitlines()):
-        for match in pattern.finditer(line_text):
+        if line_text.lstrip().startswith("//"):
+            continue
+        code_part, _, _ = line_text.partition("//")
+        for match in pattern.finditer(code_part):
             start_char = match.start()
             end_char = match.end()
             locations.append(

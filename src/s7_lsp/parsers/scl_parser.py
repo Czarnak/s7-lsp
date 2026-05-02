@@ -106,9 +106,10 @@ def parse_scl(source: str, uri: str = "") -> ParsedDocument:
         logger.exception("Unexpected parser error")
         doc.diagnostics.append(
             Diagnostic(
-                message=f"Internal parser error: {e}",
+                message="Internal parser error (see language server logs for details).",
                 range=Range(Position(0, 0), Position(0, 0)),
                 severity=1,
+                source="s7-lsp",
             )
         )
 

@@ -151,6 +151,14 @@ class SymbolTable:
             return None
         return matches[-1]
 
+    def lookup_all_blocks(self, name: str) -> list[BlockSymbol]:
+        """Return every registered symbol for *name* (case-insensitive).
+
+        Unlike lookup_block(), returns all definitions so callers can detect
+        cross-document duplicates.
+        """
+        return list(self._blocks.get(name.lower(), []))
+
     def lookup_variable(self, name: str, block_name: str) -> VariableSymbol | None:
         """Find a variable by name within a specific block.
 

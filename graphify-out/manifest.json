@@ -1,0 +1,154 @@
+{
+  "C:\\Users\\LCZ\\Desktop\\RnD\\s7-lsp\\src\\s7_lsp\\ast_nodes.py": {
+    "mtime": 1777741317.878087,
+    "hash": "7f3da2dc96eec838cc6a4cb7135bdad7"
+  },
+  "C:\\Users\\LCZ\\Desktop\\RnD\\s7-lsp\\src\\s7_lsp\\server.py": {
+    "mtime": 1777741317.892374,
+    "hash": "fb214ccf0f26c5701169c52b621a58a5"
+  },
+  "C:\\Users\\LCZ\\Desktop\\RnD\\s7-lsp\\src\\s7_lsp\\workspace.py": {
+    "mtime": 1777741317.892374,
+    "hash": "153471cf076d40fd7d37a3b33ebd6d9b"
+  },
+  "C:\\Users\\LCZ\\Desktop\\RnD\\s7-lsp\\src\\s7_lsp\\__init__.py": {
+    "mtime": 1777741317.8770869,
+    "hash": "751b7c1ae3252ec1bda7004c862565e0"
+  },
+  "C:\\Users\\LCZ\\Desktop\\RnD\\s7-lsp\\src\\s7_lsp\\__main__.py": {
+    "mtime": 1777741317.878087,
+    "hash": "b6d3ff4b11c3c0af80b444372e451472"
+  },
+  "C:\\Users\\LCZ\\Desktop\\RnD\\s7-lsp\\src\\s7_lsp\\features\\completion.py": {
+    "mtime": 1777741317.879085,
+    "hash": "486a9cc6cb5a40d8c4eef74ac53c63f9"
+  },
+  "C:\\Users\\LCZ\\Desktop\\RnD\\s7-lsp\\src\\s7_lsp\\features\\definition.py": {
+    "mtime": 1777741317.8800857,
+    "hash": "6118e08870ff70a30e936481cb668560"
+  },
+  "C:\\Users\\LCZ\\Desktop\\RnD\\s7-lsp\\src\\s7_lsp\\features\\diagnostics.py": {
+    "mtime": 1777741317.8800857,
+    "hash": "e3b2f9b0a314002b7d947d31fd390cbf"
+  },
+  "C:\\Users\\LCZ\\Desktop\\RnD\\s7-lsp\\src\\s7_lsp\\features\\hover.py": {
+    "mtime": 1777741317.881086,
+    "hash": "79877f7035e8f51ce5a2989be5c53fa2"
+  },
+  "C:\\Users\\LCZ\\Desktop\\RnD\\s7-lsp\\src\\s7_lsp\\features\\references.py": {
+    "mtime": 1777741317.881086,
+    "hash": "03c51ce52485dd62cc822abfc0af03ae"
+  },
+  "C:\\Users\\LCZ\\Desktop\\RnD\\s7-lsp\\src\\s7_lsp\\features\\symbols.py": {
+    "mtime": 1777741317.8820894,
+    "hash": "a5c3b9f48b325061d9ab5f579bdd7ecd"
+  },
+  "C:\\Users\\LCZ\\Desktop\\RnD\\s7-lsp\\src\\s7_lsp\\features\\utils.py": {
+    "mtime": 1777741317.8820894,
+    "hash": "bf0e88331b35e0282b48f685dd19d56a"
+  },
+  "C:\\Users\\LCZ\\Desktop\\RnD\\s7-lsp\\src\\s7_lsp\\features\\__init__.py": {
+    "mtime": 1777741317.879085,
+    "hash": "300fd4a7e47c5f885e71246abf9a95d2"
+  },
+  "C:\\Users\\LCZ\\Desktop\\RnD\\s7-lsp\\src\\s7_lsp\\parsers\\awl_parser.py": {
+    "mtime": 1777741317.8830895,
+    "hash": "6b1525098b37ba86bdf393d3ccfe0d1c"
+  },
+  "C:\\Users\\LCZ\\Desktop\\RnD\\s7-lsp\\src\\s7_lsp\\parsers\\parser_utils.py": {
+    "mtime": 1777741317.8845997,
+    "hash": "828fb7f85b2bc1075387829a11451f2e"
+  },
+  "C:\\Users\\LCZ\\Desktop\\RnD\\s7-lsp\\src\\s7_lsp\\parsers\\resource_parser.py": {
+    "mtime": 1777741317.8861377,
+    "hash": "bad8c4aa0aa4673afd72d7a273c91974"
+  },
+  "C:\\Users\\LCZ\\Desktop\\RnD\\s7-lsp\\src\\s7_lsp\\parsers\\scl_parser.py": {
+    "mtime": 1777741317.8867898,
+    "hash": "0d5ce2a27e6c6fe386ea181a16553a03"
+  },
+  "C:\\Users\\LCZ\\Desktop\\RnD\\s7-lsp\\src\\s7_lsp\\parsers\\__init__.py": {
+    "mtime": 1777741317.8830895,
+    "hash": "21f968470e9c0194de8f7638c9f62b26"
+  },
+  "C:\\Users\\LCZ\\Desktop\\RnD\\s7-lsp\\src\\s7_lsp\\semantic\\resource_diagnostics.py": {
+    "mtime": 1777741317.8888462,
+    "hash": "b5ac32a1e3ceeac34f7025ad8e9ca959"
+  },
+  "C:\\Users\\LCZ\\Desktop\\RnD\\s7-lsp\\src\\s7_lsp\\semantic\\scope.py": {
+    "mtime": 1777741317.8888462,
+    "hash": "c31a7e86a6ab088c0fe16472c683676f"
+  },
+  "C:\\Users\\LCZ\\Desktop\\RnD\\s7-lsp\\src\\s7_lsp\\semantic\\semantic_diagnostics.py": {
+    "mtime": 1777741317.8888462,
+    "hash": "b2cdcd35a64e8e08ad6f43d68264e082"
+  },
+  "C:\\Users\\LCZ\\Desktop\\RnD\\s7-lsp\\src\\s7_lsp\\semantic\\symbol_table.py": {
+    "mtime": 1777741317.8903582,
+    "hash": "ccb31a2173e3314118392c0320834206"
+  },
+  "C:\\Users\\LCZ\\Desktop\\RnD\\s7-lsp\\src\\s7_lsp\\semantic\\type_checker.py": {
+    "mtime": 1777741317.8903582,
+    "hash": "f6a75586f6f17f9836d332e1a6d79a65"
+  },
+  "C:\\Users\\LCZ\\Desktop\\RnD\\s7-lsp\\src\\s7_lsp\\semantic\\type_info.py": {
+    "mtime": 1777741317.8913772,
+    "hash": "7a2e9a58b65dab0c78fc920b306e3fc2"
+  },
+  "C:\\Users\\LCZ\\Desktop\\RnD\\s7-lsp\\src\\s7_lsp\\semantic\\__init__.py": {
+    "mtime": 1777741317.887847,
+    "hash": "64aaffa3dbdd3e0fe31d59d58553562a"
+  },
+  "C:\\Users\\LCZ\\Desktop\\RnD\\s7-lsp\\tests\\conftest.py": {
+    "mtime": 1777741317.8936265,
+    "hash": "08eb259b1a1f6deef6e0cb5c8491daca"
+  },
+  "C:\\Users\\LCZ\\Desktop\\RnD\\s7-lsp\\tests\\test_completion.py": {
+    "mtime": 1777741317.8946514,
+    "hash": "28e4456e0779ebbd99c80dddfc796ce8"
+  },
+  "C:\\Users\\LCZ\\Desktop\\RnD\\s7-lsp\\tests\\test_definition.py": {
+    "mtime": 1777741317.8951762,
+    "hash": "2fc1c6f92184238015baf05ce44ac434"
+  },
+  "C:\\Users\\LCZ\\Desktop\\RnD\\s7-lsp\\tests\\test_hover.py": {
+    "mtime": 1777741317.8951762,
+    "hash": "2369191b7635febafb2a6ff4656172e9"
+  },
+  "C:\\Users\\LCZ\\Desktop\\RnD\\s7-lsp\\tests\\test_references.py": {
+    "mtime": 1777741317.8961866,
+    "hash": "69ca32826a4f09be94dee3a02005f5f7"
+  },
+  "C:\\Users\\LCZ\\Desktop\\RnD\\s7-lsp\\tests\\test_scope.py": {
+    "mtime": 1777741317.897186,
+    "hash": "056bf3b58f3ac9ffcdbe901fcdeba6f2"
+  },
+  "C:\\Users\\LCZ\\Desktop\\RnD\\s7-lsp\\tests\\test_semantic_diagnostics.py": {
+    "mtime": 1777741317.8981857,
+    "hash": "f7519168c8499e8f9f271c70fdec4c8a"
+  },
+  "C:\\Users\\LCZ\\Desktop\\RnD\\s7-lsp\\tests\\test_server.py": {
+    "mtime": 1777741317.8981857,
+    "hash": "b1adc99e105925561dcc5e7b36aebb46"
+  },
+  "C:\\Users\\LCZ\\Desktop\\RnD\\s7-lsp\\tests\\test_symbol_table.py": {
+    "mtime": 1777741317.8981857,
+    "hash": "6fd265937cdefc0b32647e1ba8aa8045"
+  },
+  "C:\\Users\\LCZ\\Desktop\\RnD\\s7-lsp\\tests\\test_type_info.py": {
+    "mtime": 1777741317.899186,
+    "hash": "16ba06c1ae335aee7b4792006780548b"
+  },
+  "C:\\Users\\LCZ\\Desktop\\RnD\\s7-lsp\\tests\\test_utils.py": {
+    "mtime": 1777741317.9001875,
+    "hash": "743534ab9d0e80c4ee1693762d0a0a1c"
+  },
+  "C:\\Users\\LCZ\\Desktop\\RnD\\s7-lsp\\tests\\__init__.py": {
+    "mtime": 1777741317.8936265,
+    "hash": "d41d8cd98f00b204e9800998ecf8427e"
+  },
+  "C:\\Users\\LCZ\\Desktop\\RnD\\s7-lsp\\README.md": {
+    "mtime": 1777741317.875066,
+    "hash": "a77a725f55d675f5e5062b032405ad7e"
+  }
+}
