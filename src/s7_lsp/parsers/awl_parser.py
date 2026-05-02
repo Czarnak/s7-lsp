@@ -7,9 +7,7 @@ from SCL, requiring its own grammar and semantic analysis.
 
 from __future__ import annotations
 
-from lsprotocol.types import Diagnostic, Position, Range
-
-from s7_lsp.ast_nodes import ParsedDocument
+from s7_lsp.ast_nodes import Diagnostic, ParsedDocument, Position, Range
 
 _AWL_NOT_SUPPORTED = Diagnostic(
     message="AWL/STL parsing is not yet supported. No code intelligence is available for this file.",

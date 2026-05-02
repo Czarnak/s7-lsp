@@ -92,7 +92,7 @@ def parse_resource(source: str, uri: str = "") -> ParsedDocument:
         doc.diagnostics.append(unexpected_token_diagnostic(e))
     except UnexpectedInput as e:
         doc.diagnostics.append(generic_parse_diagnostic(e))
-    except Exception as e:
+    except Exception:
         logger.exception("Unexpected resource parser error")
         doc.diagnostics.append(
             Diagnostic(

@@ -101,7 +101,7 @@ def parse_scl(source: str, uri: str = "") -> ParsedDocument:
     except UnexpectedInput as e:
         doc.diagnostics.append(generic_parse_diagnostic(e))
         doc.blocks = _fallback_extract_blocks(source)
-    except Exception as e:
+    except Exception:
         # Catch-all for unexpected parser failures — don't crash the LSP
         logger.exception("Unexpected parser error")
         doc.diagnostics.append(
