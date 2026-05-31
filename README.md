@@ -6,6 +6,8 @@ Provides code intelligence for SCL/Structured Text and Siemens resource files in
 
 Phases 1 through 4 from the product roadmap are complete: syntax support, semantic analysis, completion, and `.s7res` resource-file support are implemented. AWL/STL remains deferred.
 
+**Still in development**. Currently in Python for easy prototyping. When I finish, I'll most likely move to lighter, faster implementation, maybe Rust.
+
 ## Supported Languages
 
 | Extension | Language | Status |
