@@ -39,6 +39,7 @@ Phases 1 through 4 from the product roadmap are complete: syntax support, semant
 ## Installation
 
 ```bash
+# not yet
 pip install s7-lsp
 ```
 

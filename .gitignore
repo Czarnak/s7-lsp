@@ -26,6 +26,11 @@ production/
 test.py
 .coverage
 graphify-out/cache/
+graphify-out/manifest.json
+graphify-out/cost.json
+graphify-out/.graphify_root
+graphify-out/.graphify_python
+graphify-out/graph.html
 vendor/
 node_modules/
 dist/
